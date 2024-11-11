@@ -1,15 +1,15 @@
-package lab10.PiplinedCPU
+package acal_lab09.PipelinedCPU
 
 import chisel3._
 import chisel3.util._
 
-import lab10.MemIF._
-import lab10.PiplinedCPU.StageRegister._
-import lab10.PiplinedCPU.Controller._
-import lab10.PiplinedCPU.DatapathModule._
-import lab10.PiplinedCPU.opcode_map._
+import acal_lab09.MemIF._
+import acal_lab09.PipelinedCPU.StageRegister._
+import acal_lab09.PipelinedCPU.Controller._
+import acal_lab09.PipelinedCPU.DatapathModule._
+import acal_lab09.PipelinedCPU.opcode_map._
 
-class PiplinedCPU(memAddrWidth: Int, memDataWidth: Int) extends Module {
+class PipelinedCPU(memAddrWidth: Int, memDataWidth: Int) extends Module {
     val io = IO(new Bundle{
         //InstMem
         val InstMem = new MemIF_CPU(memAddrWidth, memDataWidth) 
@@ -23,9 +23,10 @@ class PiplinedCPU(memAddrWidth: Int, memDataWidth: Int) extends Module {
 
         // Test
         val E_Branch_taken = Output(Bool())
-        val Flush = Output(Bool())
+        val Flush_WB_ID_DH = Output(Bool())
+        val Flush_BH = Output(Bool())
+        val Stall_WB_ID_DH = Output(Bool())
         val Stall_MA = Output(Bool())
-        val Stall_DH = Output(Bool())
         val IF_PC = Output(UInt(memAddrWidth.W))
         val ID_PC = Output(UInt(memAddrWidth.W))
         val EXE_PC = Output(UInt(memAddrWidth.W))
@@ -169,8 +170,9 @@ class PiplinedCPU(memAddrWidth: Int, memDataWidth: Int) extends Module {
 
     /* Test */
     io.E_Branch_taken := contorller.io.E_Branch_taken
-    io.Flush := contorller.io.Flush
-    io.Stall_DH := contorller.io.Stall_DH
+    io.Flush_WB_ID_DH := contorller.io.Flush_WB_ID_DH
+    io.Flush_BH := contorller.io.Flush_BH
+    io.Stall_WB_ID_DH := contorller.io.Stall_WB_ID_DH
     io.Stall_MA := contorller.io.Stall_MA
     io.IF_PC := stage_IF.io.pc
     io.ID_PC := stage_ID.io.pc

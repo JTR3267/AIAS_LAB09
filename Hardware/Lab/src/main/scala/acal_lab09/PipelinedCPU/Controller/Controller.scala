@@ -1,15 +1,15 @@
-package acal_lab09.PiplinedCPU.Controller
+package acal_lab09.PipelinedCPU.Controller
 
 import chisel3._
 import chisel3.util._
 
-import acal_lab09.PiplinedCPU.opcode_map._
-import acal_lab09.PiplinedCPU.condition._
-import acal_lab09.PiplinedCPU.inst_type._
-import acal_lab09.PiplinedCPU.alu_op_map._
-import acal_lab09.PiplinedCPU.pc_sel_map._
-import acal_lab09.PiplinedCPU.wb_sel_map._
-import acal_lab09.PiplinedCPU.forwarding_sel_map._
+import acal_lab09.PipelinedCPU.opcode_map._
+import acal_lab09.PipelinedCPU.condition._
+import acal_lab09.PipelinedCPU.inst_type._
+import acal_lab09.PipelinedCPU.alu_op_map._
+import acal_lab09.PipelinedCPU.pc_sel_map._
+import acal_lab09.PipelinedCPU.wb_sel_map._
+import acal_lab09.PipelinedCPU.forwarding_sel_map._
 
 class Controller(memAddrWidth: Int) extends Module {
   val io = IO(new Bundle {
@@ -79,12 +79,15 @@ class Controller(memAddrWidth: Int) extends Module {
 
   // Control signal - Branch/Jump
   val E_En = Wire(Bool())
-  E_En := (EXE_opcode===BRANCH)         // To Be Modified
+  E_En := (EXE_opcode===BRANCH || EXE_opcode===JALR || EXE_opcode===JAL)         // To Be Modified
   val E_Branch_taken = Wire(Bool())
   E_Branch_taken := MuxLookup(EXE_opcode, false.B, Seq(
           BRANCH -> MuxLookup(EXE_funct3, false.B, Seq(
             "b000".U(3.W) -> io.E_BrEq.asUInt,
+            "b100".U(3.W) -> io.E_BrLT.asUInt
           )),
+          JALR -> true.B,
+          JAL -> true.B,
         ))    // To Be Modified
 
   io.E_En := E_En
@@ -110,14 +113,30 @@ class Controller(memAddrWidth: Int) extends Module {
     LOAD -> I_type,
     BRANCH -> B_type,
     LUI -> U_type,
+    STORE -> S_type,
+    JALR -> I_type,
+    JAL -> J_type,
+    OP -> R_type,
+    AUIPC -> U_type,
   )) // To Be Modified
 
   // Control signal - Scalar ALU
   io.E_ASel := MuxLookup(EXE_opcode, 0.U, Seq(
     BRANCH -> 1.U,
     LUI -> 2.U,
+    JAL -> 1.U,
+    AUIPC -> 1.U,
   ))    // To Be Modified
-  io.E_BSel := 1.U // To Be Modified
+  io.E_BSel := MuxLookup(EXE_opcode, 0.U, Seq(
+    OP_IMM -> 1.U,
+    LOAD -> 1.U,
+    BRANCH -> 1.U,
+    LUI -> 1.U,
+    STORE -> 1.U,
+    JALR -> 1.U,
+    JAL -> 1.U,
+    AUIPC -> 1.U,
+  ))    // To Be Modified
 
   io.E_ALUSel := MuxLookup(EXE_opcode, (Cat(0.U(7.W), "b11111".U, 0.U(3.W))), Seq(
     OP -> (Cat(EXE_funct7, "b11111".U, EXE_funct3)),
@@ -139,11 +158,17 @@ class Controller(memAddrWidth: Int) extends Module {
     OP_IMM -> true.B,
     LOAD -> true.B,
     LUI -> true.B,
+    JALR -> true.B,
+    JAL -> true.B,
+    OP -> true.B,
+    AUIPC -> true.B,
   ))  // To Be Modified
 
 
   io.W_WBSel := MuxLookup(WB_opcode, ALUOUT, Seq(
     LOAD -> LD_DATA,
+    JALR -> PC_PLUS_4,
+    JAL -> PC_PLUS_4,
   )) // To Be Modified
 
   // Control signal - Others
