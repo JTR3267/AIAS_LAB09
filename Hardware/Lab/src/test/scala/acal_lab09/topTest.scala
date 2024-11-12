@@ -19,9 +19,10 @@ class topTest(dut:top) extends PeekPokeTester(dut){
         var PC_WB = peek(dut.io.WB_PC).toInt
 
         var E_BT = peek(dut.io.E_Branch_taken).toInt
-        var Flush = peek(dut.io.Flush).toInt
+        var Flush_RAW_DH = peek(dut.io.Flush_RAW_DH).toInt
+        var Flush_BH = peek(dut.io.Flush_BH).toInt
+        var Stall_RAW_DH = peek(dut.io.Stall_RAW_DH).toInt
         var Stall_MA = peek(dut.io.Stall_MA).toInt
-        var Stall_DH = peek(dut.io.Stall_DH).toInt
         var alu_out = (peek(dut.io.EXE_alu_out).toInt.toHexString).replace(' ', '0')
         var EXE_src1 = (peek(dut.io.EXE_src1).toInt.toHexString).replace(' ', '0')
         var EXE_src2 = (peek(dut.io.EXE_src2).toInt.toHexString).replace(' ', '0')
@@ -47,7 +48,7 @@ class topTest(dut:top) extends PeekPokeTester(dut){
                 s"[DM Raddr]${"%8s".format(DM_raddr)} [DM Rdata]${"%8s".format(DM_rdata)}")
         println(s"[PC_WB ]${"%8d".format(PC_WB)} [Inst] ${"%-25s".format(lines(PC_WB>>2))} "+
                 s"[ WB reg ]${"%8d".format(WB_reg)} [WB  data]${"%8s".format(WB_wdata)}")
-        println(s"[Flush ] ${"%1d".format(Flush)} [Stall_MA ] ${"%1d".format(Stall_MA)} [Stall_DH ] ${"%1d".format(Stall_DH)} ")
+        println(s"[Flush_RAW_DH ] ${"%1d".format(Flush_RAW_DH)} [Flush_BH ] ${"%1d".format(Flush_BH)} [Stall_RAW_DH ] ${"%1d".format(Stall_RAW_DH)} [Stall_MA ] ${"%1d".format(Stall_MA)} ")
         println("==============================================")
 
         step(1)

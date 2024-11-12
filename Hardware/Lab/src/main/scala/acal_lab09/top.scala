@@ -3,7 +3,7 @@ package acal_lab09
 import chisel3._
 import chisel3.util._
 
-import acal_lab09.PiplinedCPU._
+import acal_lab09.PipelinedCPU._
 import acal_lab09.Memory._
 import acal_lab09.MemIF._
 
@@ -18,9 +18,10 @@ class top extends Module {
 
         // Test
         val E_Branch_taken = Output(Bool())
-        val Flush = Output(Bool())
+        val Flush_RAW_DH = Output(Bool())
+        val Flush_BH = Output(Bool())
+        val Stall_RAW_DH = Output(Bool())
         val Stall_MA = Output(Bool())
-        val Stall_DH = Output(Bool())
         val IF_PC = Output(UInt(32.W))
         val ID_PC = Output(UInt(32.W))
         val EXE_PC = Output(UInt(32.W))
@@ -39,7 +40,7 @@ class top extends Module {
 
     })
 
-    val cpu = Module(new PiplinedCPU(15,32))
+    val cpu = Module(new PipelinedCPU(15,32))
     val im = Module(new InstMem(15))
     val dm = Module(new DataMem(15))
 
@@ -68,9 +69,10 @@ class top extends Module {
 
     // Test
     io.E_Branch_taken := cpu.io.E_Branch_taken
-    io.Flush := cpu.io.Flush
+    io.Flush_RAW_DH := cpu.io.Flush_RAW_DH
+    io.Flush_BH := cpu.io.Flush_BH
+    io.Stall_RAW_DH := cpu.io.Stall_RAW_DH
     io.Stall_MA := cpu.io.Stall_MA
-    io.Stall_DH := cpu.io.Stall_DH
     io.IF_PC := cpu.io.IF_PC
     io.ID_PC := cpu.io.ID_PC
     io.EXE_PC := cpu.io.EXE_PC
