@@ -84,7 +84,11 @@ class Controller(memAddrWidth: Int) extends Module {
   E_Branch_taken := MuxLookup(EXE_opcode, false.B, Seq(
           BRANCH -> MuxLookup(EXE_funct3, false.B, Seq(
             "b000".U(3.W) -> io.E_BrEq.asUInt,
-            "b100".U(3.W) -> io.E_BrLT.asUInt
+            "b001".U(3.W) -> ~(io.E_BrEq.asUInt),
+            "b100".U(3.W) -> io.E_BrLT.asUInt,
+            "b101".U(3.W) -> ~(io.E_BrLT.asUInt),
+            "b110".U(3.W) -> io.E_BrLT.asUInt,
+            "b111".U(3.W) -> ~(io.E_BrLT.asUInt),
           )),
           JALR -> true.B,
           JAL -> true.B,
