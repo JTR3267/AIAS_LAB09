@@ -19,6 +19,10 @@ class topTest(dut:top) extends PeekPokeTester(dut){
     var Conditional_Branch_Hit_Count = 0
     var Unconditional_Branch_Hit_Count = 0
     var Flush_Count = 0
+    var Mem_Read_Request_Count = 0
+    var Mem_Write_Request_Count = 0
+    var Mem_Read_Bytes_Count = 0
+    var Mem_Write_Bytes_Count = 0
     /* Lab 10_3 performance counter */
 
     while(!peek(dut.io.Hcf)){
@@ -29,9 +33,10 @@ class topTest(dut:top) extends PeekPokeTester(dut){
         var PC_WB = peek(dut.io.WB_PC).toInt
 
         var E_BT = peek(dut.io.E_Branch_taken).toInt
-        var Flush = peek(dut.io.Flush).toInt
+        var Flush_RAW_DH = peek(dut.io.Flush_RAW_DH).toInt
+        var Flush_BH = peek(dut.io.Flush_BH).toInt
+        var Stall_RAW_DH = peek(dut.io.Stall_RAW_DH).toInt
         var Stall_MA = peek(dut.io.Stall_MA).toInt
-        var Stall_DH = peek(dut.io.Stall_DH).toInt
         var alu_out = (peek(dut.io.EXE_alu_out).toInt.toHexString).replace(' ', '0')
         var EXE_src1 = (peek(dut.io.EXE_src1).toInt.toHexString).replace(' ', '0')
         var EXE_src2 = (peek(dut.io.EXE_src2).toInt.toHexString).replace(' ', '0')
@@ -44,6 +49,8 @@ class topTest(dut:top) extends PeekPokeTester(dut){
 
         var EXE_Jump = peek(dut.io.EXE_Jump).toInt
         var EXE_Branch = peek(dut.io.EXE_Branch).toInt
+        var MEM_opcode = peek(dut.io.MEM_opcode).toInt.toBinaryString
+        var DM_Length = peek(dut.io.DM_Length).toInt.toBinaryString
 
         println(s"[PC_IF ]${"%8d".format(PC_IF)} [Inst] ${"%-25s".format(lines(PC_IF>>2))} ")
         println(s"[PC_ID ]${"%8d".format(PC_ID)} [Inst] ${"%-25s".format(lines(PC_ID>>2))} ")
@@ -57,17 +64,16 @@ class topTest(dut:top) extends PeekPokeTester(dut){
                 s"[DM Raddr]${"%8s".format(DM_raddr)} [DM Rdata]${"%8s".format(DM_rdata)}")
         println(s"[PC_WB ]${"%8d".format(PC_WB)} [Inst] ${"%-25s".format(lines(PC_WB>>2))} "+
                 s"[ WB reg ]${"%8d".format(WB_reg)} [WB  data]${"%8s".format(WB_wdata)}")
-        println(s"[Flush ] ${"%1d".format(Flush)} [Stall_MA ] ${"%1d".format(Stall_MA)} [Stall_DH ] ${"%1d".format(Stall_DH)} ")
+        println(s"[Flush_RAW_DH ] ${"%1d".format(Flush_RAW_DH)} [Flush_BH ] ${"%1d".format(Flush_BH)} [Stall_RAW_DH ] ${"%1d".format(Stall_RAW_DH)} [Stall_MA ] ${"%1d".format(Stall_MA)} ")
         println("==============================================")
 
         /* Lab 10_3 performance counter */
         Cycle_Count += 1 //Cycle
-        if(Stall_MA==0 && Stall_DH==0){
+        if(Stall_MA==0 && Stall_RAW_DH==0){
             Inst_Count += 1   // Not Stall, read inst
-
             if(EXE_Branch==1){
                 Conditional_Branch_Count += 1
-                if(Flush == 0){
+                if(Flush_BH == 0){
                     Conditional_Branch_Hit_Count += 1
                 }else{
                     Flush_Count += 1
@@ -75,12 +81,24 @@ class topTest(dut:top) extends PeekPokeTester(dut){
             }
             if(EXE_Jump==1){
                 Unconditional_Branch_Count += 1
-                if(Flush == 0){
+                if(Flush_BH == 0){
                     Unconditional_Branch_Hit_Count += 1
                 }else{
                     Flush_Count += 1
                 }
             }
+        }
+        if(MEM_opcode=="11"){
+            Mem_Read_Request_Count += 1
+            if(DM_Length=="0" || DM_Length=="100") Mem_Read_Bytes_Count+=1
+            else if(DM_Length=="1" || DM_Length=="101") Mem_Read_Bytes_Count+=2
+            else if(DM_Length=="10") Mem_Read_Bytes_Count+=4
+        }
+        else if(MEM_opcode=="100011"){
+            Mem_Write_Request_Count += 1
+            if(DM_Length=="0" || DM_Length=="100") Mem_Write_Bytes_Count+=1
+            else if(DM_Length=="1" || DM_Length=="101") Mem_Write_Bytes_Count+=2
+            else if(DM_Length=="10") Mem_Write_Bytes_Count+=4
         }
         /* Lab 10_3 performance counter */
 
@@ -124,12 +142,16 @@ class topTest(dut:top) extends PeekPokeTester(dut){
     println(s"[Conditional Branch Hit Count   ] ${"%8d".format(Conditional_Branch_Hit_Count)}")
     println(s"[Unconditional Branch Hit Count ] ${"%8d".format(Unconditional_Branch_Hit_Count)}")
     println(s"[Flush Count                    ] ${"%8d".format(Flush_Count)}")
-
+    println(s"[Mem Read Request Count         ] ${"%8d".format(Mem_Read_Request_Count)}")
+    println(s"[Mem Write Request Count        ] ${"%8d".format(Mem_Write_Request_Count)}")
+    println(s"[Mem Read Bytes Count           ] ${"%8d".format(Mem_Read_Bytes_Count)}")
+    println(s"[Mem Write Bytes Count          ] ${"%8d".format(Mem_Write_Bytes_Count)}")
 
     // Performance Analysis
     println("==============================================================")
     println("Performance Analysis:")
     println(s"[CPI                            ] ${"%8f".format(Cycle_Count.toFloat/Inst_Count.toFloat)}")
+    println(s"[Total Bus bandwidth requiement ] ${"%8d".format(Mem_Read_Bytes_Count+Mem_Write_Bytes_Count)}")
     println("==============================================================")
     /* Lab 10_3 performance counter */
 }
