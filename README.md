@@ -31,3 +31,13 @@ Paste the result Here (Screenshot).
 
 Explain the result Here.
 Single-cycle CPU必須在一個較長的cycle內完成每條instruction的所有步驟(stage)，並且CPU的某些component因為要等待其他component的結果而閒置，而5-stage pipelined CPU透過將instruction分成五個步驟(stage)，讓這五個步驟(stage)同時運行，減少CPU內component的idle時間，並降低cycle時長，進而提升效能。
+
+## Bonus 
+
+- If you have done any bonus, you may paste your results in this section
+ 
+- Bonus: Kadane's algorithm
+![](https://course.playlab.tw/md/uploads/39abe00a-630e-4b2b-95af-aa59a356d067.png)
+
+- Bonus: Merge sort
+![](https://course.playlab.tw/md/uploads/21597291-8572-480b-950a-afe738e0c0f9.png)
